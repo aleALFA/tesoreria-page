@@ -1,1 +1,2 @@
 VITE_API_BASE_PATH=http://localhost:50052
+VITE_BASE_PATH_URI=/core-tesoreria-page

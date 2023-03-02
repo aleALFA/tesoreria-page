@@ -8,24 +8,26 @@ import AddBrotherView from "../../modules/Brother/ui/add";
 import PaymentListByBrotherView from "../../modules/Payment/ui/listByBrother";
 import AddPaymentView from "../../modules/Payment/ui/add";
 
+const basePath = import.meta.env.VITE_BASE_PATH_URI;
+
 export const dashboardBrotherPaths = {
-  index: '/dashboard/brother',
-  list: '/dashboard/brother/list',
-  add: '/dashboard/brother/add',
+  index: basePath + '/dashboard/brother',
+  list: basePath + '/dashboard/brother/list',
+  add: basePath + '/dashboard/brother/add',
 }
 export const dashboardPaymentPaths = {
-  index: '/dashboard/payment',
-  listByBrother: '/dashboard/payment/list/brother',
-  add: '/dashboard/payment/add',
+  index: basePath + '/dashboard/payment',
+  listByBrother: basePath + '/dashboard/payment/list/brother',
+  add: basePath + '/dashboard/payment/add',
 }
 export const dashboardPaths = {
-  index: '/dashboard',
+  index: basePath+'/dashboard',
   brother: dashboardBrotherPaths,
   payment: dashboardPaymentPaths,
 }
 export const paths = {
-  index: '/',
-  notFound: '/404',
+  index: basePath,
+  notFound: basePath+'/404',
   dashboard: dashboardPaths,
 }
 
@@ -53,6 +55,8 @@ export default function Router() {
 
           <Route path="*" element={<LoginView />} />
         </Route>
+
+        { basePath !== '/' && <Route index element={<Navigate replace to={paths.index} />} /> }
       </Routes>
     </BrowserRouter>
   );
