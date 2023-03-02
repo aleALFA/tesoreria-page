@@ -22,7 +22,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  VITE_API_BASE_PATH: https://tesoreria-core.fly.dev
   VITE_BASE_PATH_URI: /core-tesoreria-page
 
 jobs:
