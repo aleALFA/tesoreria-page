@@ -1,18 +1,24 @@
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
-import { Layout, theme } from 'antd';
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Grid, Layout, theme } from 'antd';
 import { Outlet } from "react-router-dom";
 
-import LayoutSider from './component/sider';
 import LayoutFooter from "./component/footer";
+import LayoutSider from './component/sider';
 
 const { Header, Content } = Layout;
 
 export default function DashboardLayout() {
   const {
-    token: { colorBgContainer },
+    token: { colorBgContainer, colorBgLayout },
   } = theme.useToken();
+  const screens = Grid.useBreakpoint();
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => { setCollapsed(!screens.lg); }, [screens]);
+  useEffect(() => {
+    (document.getElementById('root')!).style.background = colorBgLayout;
+  }, []);
 
   return (
     <Layout hasSider>

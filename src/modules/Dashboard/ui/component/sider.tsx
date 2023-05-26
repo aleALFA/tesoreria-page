@@ -6,8 +6,8 @@ import {
   // UploadOutlined,
   // UserOutlined,
 } from '@ant-design/icons';
-import { useNavigate } from "react-router-dom";
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from "react-router-dom";
 import type { MenuProps } from 'antd';
 import { Layout, Menu } from 'antd';
 
@@ -18,9 +18,10 @@ interface LayoutSiderProps {
   collapsed: boolean
 }
 export default function LayoutSider({ collapsed }: LayoutSiderProps) {
+  const location = useLocation();
   const navigate = useNavigate();
 
-  const [current, setCurrent] = useState('dashboard');
+  const [current, setCurrent] = useState<string[]>([]);
 
   const items: MenuProps['items'] = useMemo(() => {
     const items = [];
@@ -76,8 +77,14 @@ export default function LayoutSider({ collapsed }: LayoutSiderProps) {
   }, [navigate]);
 
   const onClick = useCallback((e: ItemType) => {
-    setCurrent((e?.key ?? '') as string);
+    setCurrent([(e?.key ?? '') as string]);
   },[setCurrent]);
+
+  useEffect(() => {
+    const basePath = import.meta.env.VITE_BASE_PATH_URI;
+    const actualUri = location.pathname.replace(`${basePath}/`, '');
+    setCurrent(() => [actualUri]);
+  }, []);
 
   return (
     <Layout.Sider
@@ -98,7 +105,7 @@ export default function LayoutSider({ collapsed }: LayoutSiderProps) {
         <h1 className="m-0 text-center" style={{ lineHeight: '32px' }}>Dantón 97</h1>
       </div>
       <Menu
-        defaultSelectedKeys={[current]}
+        selectedKeys={current}
         onClick={onClick}
         items={items}
         mode="inline"

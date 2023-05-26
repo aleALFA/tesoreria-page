@@ -9,30 +9,30 @@ import UnauthorizedError from "../../common/domain/error/Unauthorized";
 import { valueType } from "antd/es/statistic/utils";
 
 export default function HomeDashboardView() {
+  const [notify, contextHolder] = notification.useNotification();
   const repo = useDashboardRepo();
-  const [api, contextHolder] = notification.useNotification();
-  const query = useQuery('dashboardIndex', () => repo.index(controller.current?.signal), {
-    cacheTime: 0,
-    retry: 2,
+
+  const query = useQuery('dashboardIndex', {
     onError: (error: Error) => {
-      return api.error({
+      return notify.error({
         message: texts.notificationErrorTitle,
         description: error instanceof UnauthorizedError? texts.errorUnauthorized : error.message,
         placement: 'top',
       });
-    }
+    },
+    queryFn: (context) => repo.index(context.signal),
+    keepPreviousData: false,
+    cacheTime: 0,
+    retry: 2,
   });
 
-  const controller = useRef<AbortController>();
-
   const rechargeData = useCallback(async () => {
-    controller.current = new AbortController();
     await query.refetch();
-    api.success({
+    notify.success({
       message: texts.reloadSuccess,
       placement: 'top',
     });
-  }, [api, controller, query]);
+  }, [notify, query]);
 
   const formatterUp  = useMemo(
     () => (value: valueType) => <CountUp end={+value} separator="," decimals={2} />,
@@ -44,68 +44,54 @@ export default function HomeDashboardView() {
   const cashIn = useMemo(() => (query.data?.cash?.in || 0) / 100, [query]);
   const speiIn = useMemo(() => (query.data?.spei?.in || 0)/ 100, [query]);
 
-
-  useEffect(() => {
-    controller.current = new AbortController();
-    () => controller.current?.abort();
-  }, [controller]);
-
   return (<>
     {contextHolder}
     <div className="container mx-auto">
       <Row justify="space-between" align="middle">
-          <h2>{texts.title}</h2>
-          <Button type="primary" onClick={rechargeData}>
-            {texts.rechargeButton}
-          </Button>
+        <h2>{texts.title}</h2>
+        <Button type="primary" onClick={rechargeData}> {texts.rechargeButton} </Button>
       </Row>
-      <Divider orientation="left">{texts.numberSection}</Divider>
 
-      <Row justify="space-between" align="top">
-        <Col span={12} sm={{ span: 24 }}>
-          <h3>{texts.cash}</h3>
+      <Divider orientation="left">{texts.cash}</Divider>
+      <Row justify="space-between" align="top" wrap>
+        { showSkeleton ?
+          <Skeleton paragraph={{ rows: 4 }} active />
+          : <>
+            <Col span={12}>
+              <Statistic title={texts.in} value={cashIn} formatter={formatterUp} />
+            </Col>
+            <Col span={12}>
+              <Statistic title={texts.out} value={cashOut} formatter={formatterUp} />
+            </Col>
+            <Col span={12}>
+              <Statistic title={texts.gift} value={(query.data?.cash?.gift || 0) / 100} formatter={formatterUp} />
+            </Col>
+            <Col span={12}>
+              <Statistic title={texts.total} value={cashIn - cashOut} formatter={formatterUp} />
+            </Col>
+          </>
+        }
+      </Row>
 
-          <Row gutter={16}>
-            { showSkeleton ?
-              <Skeleton paragraph={{ rows: 4 }} />
-              : <>
-              <Col span={12}>
-                <Statistic title={texts.in} value={cashIn} formatter={formatterUp} />
-              </Col>
-              <Col span={12}>
-                <Statistic title={texts.out} value={cashOut} formatter={formatterUp} />
-              </Col>
-              <Col span={12}>
-                <Statistic title={texts.gift} value={(query.data?.cash?.gift || 0) / 100} formatter={formatterUp} />
-              </Col>
-              <Col span={12}>
-                <Statistic title={texts.total} value={cashIn - cashOut} formatter={formatterUp} />
-              </Col>
-            </>}
-          </Row>
-        </Col>
-        <Col span={12} sm={{ span: 24 }}>
-          <h3>{texts.spei}</h3>
-
-          <Row gutter={16}>
-            { showSkeleton ?
-              <Skeleton paragraph={{ rows: 4 }} />
-              : <>
-              <Col span={12}>
-                <Statistic title={texts.in} value={speiIn} formatter={formatterUp} />
-              </Col>
-              <Col span={12}>
-                <Statistic title={texts.out} value={speiOut} formatter={formatterUp} />
-              </Col>
-              <Col span={12}>
-                <Statistic title={texts.gift} value={(query.data?.spei?.gift || 0) / 100} formatter={formatterUp} />
-              </Col>
-              <Col span={12}>
-                <Statistic title={texts.total} value={speiIn - speiOut} formatter={formatterUp} />
-              </Col>
-            </>}
-          </Row>
-        </Col>
+      <Divider orientation="left">{texts.spei}</Divider>
+      <Row justify="space-between" align="top" wrap>
+        { showSkeleton ?
+          <Skeleton paragraph={{ rows: 4 }} active />
+          : <>
+            <Col span={12}>
+              <Statistic title={texts.in} value={speiIn} formatter={formatterUp} />
+            </Col>
+            <Col span={12}>
+              <Statistic title={texts.out} value={speiOut} formatter={formatterUp} />
+            </Col>
+            <Col span={12}>
+              <Statistic title={texts.gift} value={(query.data?.spei?.gift || 0) / 100} formatter={formatterUp} />
+            </Col>
+            <Col span={12}>
+              <Statistic title={texts.total} value={speiIn - speiOut} formatter={formatterUp} />
+            </Col>
+          </>
+        }
       </Row>
     </div>
   </>);
@@ -113,7 +99,6 @@ export default function HomeDashboardView() {
 
 const texts = {
   title: 'Bienvenido!',
-  numberSection: 'Números generales',
   cash: 'Efectivo:',
   spei: 'Digital:',
   in: 'Entradas:',

@@ -1,21 +1,25 @@
 import { useCallback, useMemo, useState } from "react";
+import { SnippetsOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import notification from "antd/es/notification";
+import { useNavigate } from "react-router-dom";
+import { Button, Space, Tag } from "antd";
 import { useQuery } from "react-query";
-import Table from "antd/es/table";
-import { Tag } from "antd";
 import CountUp from "react-countup";
+import Table from "antd/es/table";
 
 import { statusColors as broStatusColors } from "../../Brother/domain/dictionaries";
+import { BrotherPaymentProfile, PaymentStatusStatus } from '../domain/interfaces';
 import { usePaymentRepo } from "../../common/application/context/repositories";
 import UnauthorizedError from "../../common/domain/error/Unauthorized";
 import TableHeader from "../../Brother/ui/components/listHeader";
 import { BrotherStatus } from "../../Brother/domain/interfaces";
-import { BrotherPaymentProfile, PaymentStatusStatus } from '../domain/interfaces';
+import { dashboardPaymentPaths } from "../../../config/router";
 import { paymentStatusColors } from "../domain/dictionaries";
 
 export default function PaymentListByBrotherView() {
   const [api, contextHolder] = notification.useNotification();
+  const navigate = useNavigate();
   const repo = usePaymentRepo();
 
   const [search, setSearch] = useState('');
@@ -41,6 +45,17 @@ export default function PaymentListByBrotherView() {
 
   const columns: ColumnsType<BrotherPaymentProfile> = useMemo(() => [
     {
+      title: texts.actions,
+      render: (_, record) => <Space wrap size="middle">
+        <Button
+          onClick={() => navigate(`${dashboardPaymentPaths.list}?brother_id=${record.brother?.id}`)}
+          icon={<SnippetsOutlined />}
+          type="link">
+          {texts.actionListReceipts}
+        </Button>
+      </Space>,
+    },
+    {
       title: texts.name,
       dataIndex: ['brother.name'],
       render: (_, record) => <a>{record.brother?.name ?? ''}</a>,
@@ -50,22 +65,6 @@ export default function PaymentListByBrotherView() {
       dataIndex: ['brother.status'],
       render: (_, record) => statusBroTag(record.brother?.status),
       onFilter: (value, record) => record.brother?.status?.startsWith(`${value}`) ?? false,
-      filters: [
-        {
-          text: texts.statusDic.OK,
-          value: 'OK',
-        },
-        {
-          text: texts.statusDic.DEBT,
-          value: 'DEBT',
-        },
-      ],
-    },
-    {
-      title: texts.status,
-      dataIndex: ['paymentStatus.status'],
-      render: (_, record) => statusTag(record.paymentStatus?.status),
-      onFilter: (value, record) => record.paymentStatus?.status?.startsWith(`${value}`) ?? false,
       filters: [
         {
           text: texts.statusBroDic.ACTIVE,
@@ -84,16 +83,35 @@ export default function PaymentListByBrotherView() {
           value: 'CANDIDATE',
         },
       ],
+      responsive: ["lg"],
+    },
+    {
+      title: texts.status,
+      dataIndex: ['paymentStatus.status'],
+      render: (_, record) => statusTag(record.paymentStatus?.status),
+      onFilter: (value, record) => record.paymentStatus?.status?.startsWith(`${value}`) ?? false,
+      filters: [
+        {
+          text: texts.statusDic.OK,
+          value: 'OK',
+        },
+        {
+          text: texts.statusDic.DEBT,
+          value: 'DEBT',
+        },
+      ],
     },
     {
       title: texts.debitAmount,
       dataIndex: ['paymentStatus.debitAmount'],
       render: (_, record) => <CountUp end={(record.paymentStatus?.debitAmount ?? 0) / 100} separator="," decimals={2} />,
+      responsive: ["md"],
     },
     {
       title: texts.lastPaymentDate,
       dataIndex: ['paymentStatus.lastPaymentDate'],
       render: (_, record) => formatDate(record.paymentStatus?.lastPaymentDate),
+      responsive: ["lg"],
     },
   ], []);
 
@@ -129,6 +147,8 @@ export default function PaymentListByBrotherView() {
 
 const texts = {
   title: 'Listado de pagos por Hermano',
+  actions: 'Acciones',
+  actionListReceipts: 'Ver recibos',
   name: "Nombre",
   status: "Estatus de pago",
   broStatus: "Estatus del Hermano",

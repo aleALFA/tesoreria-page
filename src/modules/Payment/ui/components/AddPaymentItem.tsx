@@ -86,6 +86,8 @@ export default function AddPaymentItemComponent({
       <Form.Item
         label={texts.fields.isNotGlobalMovement}
         name={['items', index, 'isGlobalMovement']}
+        valuePropName="checked"
+        initialValue={true}
         rules={rules.isGlobalMovement}>
         <Switch
           checkedChildren={texts.yes}

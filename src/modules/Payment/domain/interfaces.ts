@@ -30,6 +30,23 @@ export interface BrotherPaymentProfile {
 export interface BrotherPaymentProfileResponse {
   list: BrotherPaymentProfile[];
 }
+export interface ListPaymentItem {
+  id: string;
+  sequence: string;
+  date: string;
+  amount: number;
+  quantity: number;
+  description: string;
+  method: PaymentItemMethod;
+  type: PaymentItemType;
+  reference?: string;
+  isGlobalMovement: boolean;
+  status: PaymentStatusStatus;
+  created_in?: Date;
+}
+export interface ListPaymentResponse {
+  list: ListPaymentItem[];
+}
 
 export interface SearchBrotherProfile {
   id: string;
